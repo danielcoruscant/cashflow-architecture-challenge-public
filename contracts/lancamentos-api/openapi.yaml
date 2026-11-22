@@ -1,0 +1,293 @@
+openapi: 3.0.3
+info:
+  title: Cash Flow - Lancamentos API
+  version: v1
+  description: API responsável pelo registro e consulta dos lançamentos financeiros.
+servers:
+  - url: /api/v1
+paths:
+  /lancamentos:
+    post:
+      tags:
+        - Lancamentos
+      operationId: criarLancamento
+      summary: Criar lançamento financeiro
+      security:
+        - bearerAuth:
+            - lancamentos.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CriarLancamentoRequest"
+      responses:
+        "201":
+          description: Lançamento criado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LancamentoResponse"
+        "400":
+          description: Requisição inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+        "401":
+          description: Token ausente ou inválido.
+        "403":
+          description: Usuário sem permissão para registrar lançamentos.
+        "500":
+          description: Erro interno ao processar a operação.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+    get:
+      tags:
+        - Lancamentos
+      operationId: listarLancamentos
+      summary: Listar lançamentos de uma conta
+      security:
+        - bearerAuth:
+            - lancamentos.read
+      parameters:
+        - $ref: "#/components/parameters/AccountId"
+        - name: page
+          in: query
+          required: false
+          description: Índice da página, começando em zero.
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: pageSize
+          in: query
+          required: false
+          description: Quantidade máxima de itens por página.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Página de lançamentos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginaLancamentosResponse"
+        "400":
+          description: Requisição inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+        "401":
+          description: Token ausente ou inválido.
+        "403":
+          description: Usuário sem permissão para consultar lançamentos.
+        "500":
+          description: Erro interno ao processar a operação.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+  /lancamentos/{id}:
+    get:
+      tags:
+        - Lancamentos
+      operationId: consultarLancamento
+      summary: Consultar lançamento por id
+      security:
+        - bearerAuth:
+            - lancamentos.read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador do lançamento.
+          schema:
+            type: string
+            minLength: 1
+        - $ref: "#/components/parameters/AccountId"
+      responses:
+        "200":
+          description: Lançamento consultado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LancamentoResponse"
+        "400":
+          description: Requisição inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+        "401":
+          description: Token ausente ou inválido.
+        "403":
+          description: Usuário sem permissão para consultar lançamentos.
+        "404":
+          description: Lançamento não encontrado na conta informada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+        "500":
+          description: Erro interno ao processar a operação.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+  /lancamentos/{id}/compensacao:
+    post:
+      tags:
+        - Lancamentos
+      operationId: compensarLancamento
+      summary: Criar lançamento compensatório
+      description: Cria um novo lançamento de tipo oposto e mesmo valor, sem alterar o lançamento original.
+      security:
+        - bearerAuth:
+            - lancamentos.write
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador do lançamento original.
+          schema:
+            type: string
+            minLength: 1
+        - $ref: "#/components/parameters/AccountId"
+      responses:
+        "201":
+          description: Lançamento compensatório criado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LancamentoResponse"
+        "401":
+          description: Token ausente ou inválido.
+        "403":
+          description: Usuário sem permissão para registrar lançamentos.
+        "404":
+          description: Lançamento original não encontrado na conta informada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+        "500":
+          description: Erro interno ao processar a operação.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+components:
+  parameters:
+    AccountId:
+      name: accountId
+      in: query
+      required: true
+      description: Identificador da conta à qual a operação se aplica.
+      schema:
+        type: string
+        minLength: 1
+  schemas:
+    TipoLancamento:
+      type: string
+      enum:
+        - CREDITO
+        - DEBITO
+    CriarLancamentoRequest:
+      type: object
+      required:
+        - accountId
+        - tipo
+        - valor
+        - data
+      properties:
+        accountId:
+          type: string
+          minLength: 1
+        tipo:
+          $ref: "#/components/schemas/TipoLancamento"
+        valor:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+          multipleOf: 0.01
+        data:
+          type: string
+          format: date
+    LancamentoResponse:
+      type: object
+      required:
+        - id
+        - accountId
+        - tipo
+        - valor
+        - data
+        - compensaLancamentoId
+      properties:
+        id:
+          type: string
+        accountId:
+          type: string
+        tipo:
+          $ref: "#/components/schemas/TipoLancamento"
+        valor:
+          type: number
+          multipleOf: 0.01
+        data:
+          type: string
+          format: date
+        compensaLancamentoId:
+          type: string
+          nullable: true
+    PaginaLancamentosResponse:
+      type: object
+      required:
+        - items
+        - page
+        - pageSize
+        - totalItems
+        - totalPages
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LancamentoResponse"
+        page:
+          type: integer
+          minimum: 0
+        pageSize:
+          type: integer
+          minimum: 1
+        totalItems:
+          type: integer
+          format: int64
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    ErroResponse:
+      type: object
+      required:
+        - codigo
+        - mensagem
+      properties:
+        codigo:
+          type: string
+        mensagem:
+          type: string
+  securitySchemes:
+    bearerAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/common/oauth2/v2.0/token
+          scopes:
+            lancamentos.read: Consultar lançamentos.
+            lancamentos.write: Registrar e compensar lançamentos.

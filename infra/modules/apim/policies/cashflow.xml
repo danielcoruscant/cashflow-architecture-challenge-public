@@ -1,0 +1,81 @@
+<policies>
+  <inbound>
+    <cors allow-credentials="false" terminate-unmatched-request="true">
+      <allowed-origins>
+        <origin>{{frontend-origin}}</origin>
+      </allowed-origins>
+      <allowed-methods preflight-result-max-age="300">
+        <method>GET</method>
+        <method>POST</method>
+      </allowed-methods>
+      <allowed-headers>
+        <header>Authorization</header>
+        <header>Content-Type</header>
+        <header>Accept</header>
+      </allowed-headers>
+    </cors>
+    <base />
+    <validate-jwt header-name="Authorization" output-token-variable-name="jwt" require-scheme="Bearer" require-expiration-time="true"
+                  require-signed-tokens="true" failed-validation-httpcode="401">
+      <openid-config url="{{entra-openid-configuration-url}}" />
+      <audiences>
+        <audience>{{lancamentos-api-audience}}</audience>
+        <audience>{{consolidado-api-audience}}</audience>
+      </audiences>
+      <issuers>
+        <issuer>{{entra-issuer}}</issuer>
+      </issuers>
+    </validate-jwt>
+    <set-variable name="token-scopes"
+                  value="@(((Jwt)context.Variables[&quot;jwt&quot;]).Claims.ContainsKey(&quot;scp&quot;) ? ((Jwt)context.Variables[&quot;jwt&quot;]).Claims[&quot;scp&quot;][0] : &quot;&quot;)" />
+    <choose>
+      <when condition="@(context.Request.Url.Path.Contains(&quot;/lancamentos&quot;) &amp;&amp; context.Request.Method == &quot;GET&quot;)">
+        <choose>
+          <when condition="@(((Jwt)context.Variables[&quot;jwt&quot;]).Audiences.Contains(&quot;{{lancamentos-api-audience}}&quot;) &amp;&amp; ((string)context.Variables[&quot;token-scopes&quot;]).Split(' ').Contains(&quot;lancamentos.read&quot;))" />
+          <otherwise>
+            <return-response>
+              <set-status code="403" reason="Forbidden" />
+            </return-response>
+          </otherwise>
+        </choose>
+        <set-backend-service base-url="{{lancamentos-backend-url}}" />
+      </when>
+      <when condition="@(context.Request.Url.Path.Contains(&quot;/lancamentos&quot;) &amp;&amp; context.Request.Method == &quot;POST&quot;)">
+        <choose>
+          <when condition="@(((Jwt)context.Variables[&quot;jwt&quot;]).Audiences.Contains(&quot;{{lancamentos-api-audience}}&quot;) &amp;&amp; ((string)context.Variables[&quot;token-scopes&quot;]).Split(' ').Contains(&quot;lancamentos.write&quot;))" />
+          <otherwise>
+            <return-response>
+              <set-status code="403" reason="Forbidden" />
+            </return-response>
+          </otherwise>
+        </choose>
+        <set-backend-service base-url="{{lancamentos-backend-url}}" />
+      </when>
+      <when condition="@(context.Request.Url.Path.Contains(&quot;/consolidado&quot;) &amp;&amp; context.Request.Method == &quot;GET&quot;)">
+        <choose>
+          <when condition="@(((Jwt)context.Variables[&quot;jwt&quot;]).Audiences.Contains(&quot;{{consolidado-api-audience}}&quot;) &amp;&amp; ((string)context.Variables[&quot;token-scopes&quot;]).Split(' ').Contains(&quot;consolidado.read&quot;))" />
+          <otherwise>
+            <return-response>
+              <set-status code="403" reason="Forbidden" />
+            </return-response>
+          </otherwise>
+        </choose>
+        <set-backend-service base-url="{{consolidado-backend-url}}" />
+      </when>
+      <otherwise>
+        <return-response>
+          <set-status code="405" reason="Method Not Allowed" />
+        </return-response>
+      </otherwise>
+    </choose>
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>

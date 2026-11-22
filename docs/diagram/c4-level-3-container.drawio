@@ -1,0 +1,133 @@
+<mxfile host="app.diagrams.net" agent="Copilot">
+  <diagram id="c4-level-3" name="C4 Level 3 - Expanded Components">
+    <mxGraphModel dx="2934" dy="1212" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=22;fontStyle=1;" value="Cash Flow Management Platform - C4 Level 3" vertex="1">
+          <mxGeometry height="40" width="600" x="740" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="launchesContainer" parent="1" style="swimlane;html=1;whiteSpace=wrap;" value="Bounded Context - Lançamentos" vertex="1">
+          <mxGeometry height="900" width="720" x="25" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="controller" parent="launchesContainer" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="LancamentoController" vertex="1">
+          <mxGeometry height="70" width="240" x="220" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="appservice" parent="launchesContainer" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="LancamentoApplicationService" vertex="1">
+          <mxGeometry height="70" width="240" x="220" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="domainservice" parent="launchesContainer" style="rounded=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="LancamentoDomainService" vertex="1">
+          <mxGeometry height="70" width="240" x="220" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="aggregate" parent="launchesContainer" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Aggregate Root&#xa;Lancamento" vertex="1">
+          <mxGeometry height="80" width="240" x="220" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="repository" parent="launchesContainer" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="LancamentoRepository" vertex="1">
+          <mxGeometry height="70" width="240" x="220" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="ledger" parent="launchesContainer" style="shape=cylinder;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Cosmos DB&#xa;Immutable Ledger&#xa;Append Only&#xa;Source Of Truth" vertex="1">
+          <mxGeometry height="120" width="300" x="190" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="launchesContainer" source="controller" target="appservice">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="launchesContainer" source="appservice" target="domainservice">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="launchesContainer" source="domainservice" target="aggregate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="launchesContainer" source="aggregate" target="repository">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="launchesContainer" source="repository" target="ledger">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zWS6aacW9sUmGktT2SsP-4" connectable="0" parent="e5" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;" value="&lt;div&gt;HTTPS/TLS 1.2+&lt;/div&gt;&lt;div&gt;Cosmos SQL API&lt;/div&gt;&lt;div&gt;Managed Identity&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.1429" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cdcContainer" parent="1" style="swimlane;html=1;" value="Integration Infrastructure - CDC Publisher" vertex="1">
+          <mxGeometry height="500" width="350" x="825" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="changefeed" parent="cdcContainer" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Cosmos Change Feed Processor" vertex="1">
+          <mxGeometry height="80" width="250" x="40" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="function" parent="cdcContainer" style="rounded=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Azure Functions&#xa;CDC Publisher" vertex="1">
+          <mxGeometry height="90" width="250" x="40" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="servicebus" parent="cdcContainer" style="shape=hexagon;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Azure Service Bus Topic&#xa;Subscription: consolidado-sub&#xa;MessageId = eventId&#xa;Retry (redelivery)" vertex="1">
+          <mxGeometry height="100" width="280" x="25" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="cdcContainer" source="changefeed" target="function">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="cdcContainer" source="function" target="servicebus">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zWS6aacW9sUmGktT2SsP-6" connectable="0" parent="e8" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;" value="&lt;div&gt;AMQP 1.0 over TLS&lt;/div&gt;&lt;div&gt;Topic Publication&lt;/div&gt;&lt;div&gt;Managed Identity&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.1429" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="consolidadoContainer" parent="1" style="swimlane;html=1;" value="Bounded Context - Consolidado" vertex="1">
+          <mxGeometry height="900" width="720" x="1255" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="listener" parent="consolidadoContainer" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Service Bus Listener" vertex="1">
+          <mxGeometry height="70" width="240" x="220" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="inbox" parent="consolidadoContainer" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Inbox Pattern&#xa;Idempotência" vertex="1">
+          <mxGeometry height="80" width="240" x="220" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="appservice2" parent="consolidadoContainer" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="ConsolidadoApplicationService" vertex="1">
+          <mxGeometry height="70" width="240" x="220" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="projection" parent="consolidadoContainer" style="rounded=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Projection Builder&#xa;Read Model Updater" vertex="1">
+          <mxGeometry height="90" width="240" x="220" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="readmodel" parent="consolidadoContainer" style="shape=cylinder;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Cosmos DB&#xa;Read Model&#xa;Projection Store&#xa;TransactionalBatch" vertex="1">
+          <mxGeometry height="120" width="280" x="200" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="consolidadoContainer" source="listener" target="inbox">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="consolidadoContainer" source="inbox" target="appservice2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="consolidadoContainer" source="appservice2" target="projection">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="consolidadoContainer" source="projection" target="readmodel">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="ledger" style="edgeStyle=orthogonalEdgeStyle;" target="changefeed">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="655" y="970" />
+              <mxPoint x="655" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="zWS6aacW9sUmGktT2SsP-3" connectable="0" parent="e6" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;" value="&lt;div&gt;HTTPS/TLS 1.2+&lt;/div&gt;&lt;div&gt;Cosmos Change Feed&lt;/div&gt;&lt;div&gt;Managed Identity&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0706" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="servicebus" style="edgeStyle=orthogonalEdgeStyle;" target="listener">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1335" y="780" />
+              <mxPoint x="1335" y="305" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="zWS6aacW9sUmGktT2SsP-5" connectable="0" parent="e9" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;" value="&lt;div&gt;AMQP 1.0 over TLS&lt;/div&gt;&lt;div&gt;Topic Subscription&lt;/div&gt;&lt;div&gt;Managed Identity&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.0195" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

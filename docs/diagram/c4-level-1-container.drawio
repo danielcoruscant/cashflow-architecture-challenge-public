@@ -1,0 +1,49 @@
+<mxfile host="app.diagrams.net" agent="Copilot">
+  <diagram id="c4-context" name="C4 Level 1 - System Context">
+    <mxGraphModel dx="2934" dy="1212" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=22;fontStyle=1;" value="Cash Flow Management Platform - C4 Level 1 - System Context" vertex="1">
+          <mxGeometry height="40" width="750" x="450" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="merchant" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuário Comerciante" vertex="1">
+          <mxGeometry height="80" width="50" x="220" y="445" as="geometry" />
+        </mxCell>
+        <mxCell id="platform" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Cash Flow Management Platform&lt;br&gt;&lt;br&gt;• Controle de Lançamentos&lt;br&gt;• Fluxo de Caixa Diário&lt;br&gt;• Saldo Consolidado Diário&lt;br&gt;• Consulta de Movimentações" vertex="1">
+          <mxGeometry height="170" width="300" x="540" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="entra" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Microsoft Entra ID&lt;br&gt;&lt;br&gt;Autenticação&lt;br&gt;Autorização&lt;br&gt;OIDC / OAuth2" vertex="1">
+          <mxGeometry height="140" width="260" x="1070" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="monitor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Azure Monitor&lt;br&gt;&lt;br&gt;Application Insights&lt;br&gt;Log Analytics Workspace&lt;br&gt;Observabilidade" vertex="1">
+          <mxGeometry height="160" width="260" x="1070" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="edge1" edge="1" parent="1" source="merchant" target="platform">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge1Label" connectable="0" parent="edge1" style="edgeLabel;html=1;align=center;verticalAlign=middle;" value="HTTPS&#xa;Registrar lançamentos&#xa;Consultar saldos" vertex="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-20" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge2" edge="1" parent="1" source="platform" target="entra">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge2Label" connectable="0" parent="edge2" style="edgeLabel;html=1;align=center;verticalAlign=middle;" value="OIDC + OAuth2&#xa;Authorization Code + PKCE" vertex="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-20" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge3" edge="1" parent="1" source="platform" target="monitor">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge3Label" connectable="0" parent="edge3" style="edgeLabel;html=1;align=center;verticalAlign=middle;" value="Logs&#xa;Métricas&#xa;Telemetria" vertex="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

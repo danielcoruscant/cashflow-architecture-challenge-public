@@ -1,0 +1,14 @@
+# Terraform local artifacts/state, for both modules and environment roots
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Lock files belong to deployable roots, not reusable child modules
+modules/*/.terraform.lock.hcl
+
+# Variable files may contain secrets; use protected environment variables instead
+*.tfvars
+*.tfvars.json
+!*.example.tfvars

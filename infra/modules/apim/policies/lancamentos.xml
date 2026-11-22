@@ -1,0 +1,57 @@
+<policies>
+  <inbound>
+    <base />
+    <validate-jwt header-name="Authorization" output-token-variable-name="jwt" require-scheme="Bearer" require-expiration-time="true"
+                  require-signed-tokens="true" failed-validation-httpcode="401">
+      <openid-config url="{{entra-openid-configuration-url}}" />
+      <audiences>
+        <audience>{{lancamentos-api-audience}}</audience>
+      </audiences>
+      <issuers>
+        <issuer>{{entra-issuer}}</issuer>
+      </issuers>
+    </validate-jwt>
+    <rate-limit-by-key calls="120" renewal-period="60"
+      counter-key="@(((Jwt)context.Variables[&quot;jwt&quot;]).Claims.ContainsKey(&quot;oid&quot;) ? ((Jwt)context.Variables[&quot;jwt&quot;]).Claims[&quot;oid&quot;][0] : ((Jwt)context.Variables[&quot;jwt&quot;]).Claims[&quot;sub&quot;][0])"
+      remaining-calls-header-name="X-RateLimit-Remaining"
+      total-calls-header-name="X-RateLimit-Limit" />
+    <set-variable name="token-scopes"
+                  value="@(((Jwt)context.Variables[&quot;jwt&quot;]).Claims.ContainsKey(&quot;scp&quot;) ? ((Jwt)context.Variables[&quot;jwt&quot;]).Claims[&quot;scp&quot;][0] : &quot;&quot;)" />
+    <choose>
+      <when condition="@(context.Request.Method == &quot;GET&quot;)">
+        <choose>
+          <when condition="@(((string)context.Variables[&quot;token-scopes&quot;]).Split(' ').Contains(&quot;lancamentos.read&quot;))" />
+          <otherwise>
+            <return-response>
+              <set-status code="403" reason="Forbidden" />
+            </return-response>
+          </otherwise>
+        </choose>
+      </when>
+      <when condition="@(context.Request.Method == &quot;POST&quot;)">
+        <choose>
+          <when condition="@(((string)context.Variables[&quot;token-scopes&quot;]).Split(' ').Contains(&quot;lancamentos.write&quot;))" />
+          <otherwise>
+            <return-response>
+              <set-status code="403" reason="Forbidden" />
+            </return-response>
+          </otherwise>
+        </choose>
+      </when>
+      <otherwise>
+        <return-response>
+          <set-status code="405" reason="Method Not Allowed" />
+        </return-response>
+      </otherwise>
+    </choose>
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>

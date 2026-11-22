@@ -1,0 +1,12 @@
+.git
+.github
+docs
+infra
+frontend
+integrations
+**/target
+**/node_modules
+**/dist
+**/coverage
+*.tfstate
+*.tfstate.*

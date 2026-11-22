@@ -1,0 +1,40 @@
+{
+  "name": "cashflow-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@azure/msal-browser": "^5.30.0",
+    "@azure/msal-react": "^5.8.3",
+    "@hookform/resolvers": "^7.0.7",
+    "@tanstack/react-query": "^5.108.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.92.0",
+    "react-router-dom": "^7.18.6",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^8.0.0",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.13",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^6.3.0",
+    "@vitest/coverage-v8": "^5.1.1",
+    "jsdom": "^31.0.1",
+    "openapi-typescript-codegen": "^0.31.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "generate:api": "openapi --input ../contracts/lancamentos-api/openapi.yaml --output src/generated/lancamentos --client fetch && openapi --input ../contracts/consolidado-api/openapi.yaml --output src/generated/consolidado --client fetch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "type": "module"
+}

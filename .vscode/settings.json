@@ -1,0 +1,13 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.maven.enabled": true,
+    "java.project.importOnFirstTimeStartup": "automatic",
+    "azureFunctions.javaBuildTool": "maven",
+    "azureFunctions.deploySubpath": "integrations/cdc-publisher/function/cdc-function/<function_build_path>",
+    "azureFunctions.projectLanguage": "Java",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen",
+    "azureFunctions.projectSubpath": "integrations/cdc-publisher/function/cdc-function",
+    "azureFunctions.preDeployTask": "package (functions)",
+    "java.compile.nullAnalysis.mode": "automatic"
+}

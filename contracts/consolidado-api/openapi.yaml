@@ -1,0 +1,150 @@
+openapi: 3.0.3
+info:
+  title: Cash Flow - Consolidado API
+  version: v1
+  description: API responsável pela consulta dos saldos consolidados financeiros.
+servers:
+  - url: /api/v1
+paths:
+  /consolidado:
+    get:
+      tags:
+        - Consolidado
+      operationId: consultarConsolidadoAtual
+      summary: Consultar consolidado atual de uma conta
+      security:
+        - bearerAuth:
+            - consolidado.read
+      parameters:
+        - $ref: "#/components/parameters/AccountId"
+      responses:
+        "200":
+          description: Consolidado atual consultado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsolidadoDiarioResponse"
+        "400":
+          description: Requisição inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+        "401":
+          description: Token ausente ou inválido.
+        "403":
+          description: Usuário sem permissão para consultar o consolidado.
+        "404":
+          description: Consolidado atual não encontrado para a conta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+        "500":
+          description: Erro interno ao processar a operação.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+  /consolidado/{data}:
+    get:
+      tags:
+        - Consolidado
+      operationId: consultarConsolidadoPorData
+      summary: Consultar consolidado por conta e data
+      security:
+        - bearerAuth:
+            - consolidado.read
+      parameters:
+        - name: data
+          in: path
+          required: true
+          description: Data do consolidado no formato ISO 8601.
+          schema:
+            type: string
+            format: date
+        - $ref: "#/components/parameters/AccountId"
+      responses:
+        "200":
+          description: Consolidado da data consultado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsolidadoDiarioResponse"
+        "400":
+          description: Data ou conta inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+        "401":
+          description: Token ausente ou inválido.
+        "403":
+          description: Usuário sem permissão para consultar o consolidado.
+        "404":
+          description: Consolidado da data não encontrado para a conta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+        "500":
+          description: Erro interno ao processar a operação.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+components:
+  parameters:
+    AccountId:
+      name: accountId
+      in: query
+      required: true
+      description: Identificador da conta consultada.
+      schema:
+        type: string
+        minLength: 1
+  schemas:
+    ConsolidadoDiarioResponse:
+      type: object
+      required:
+        - accountId
+        - data
+        - creditos
+        - debitos
+        - saldo
+      properties:
+        accountId:
+          type: string
+        data:
+          type: string
+          format: date
+        creditos:
+          type: number
+          minimum: 0
+          multipleOf: 0.01
+        debitos:
+          type: number
+          minimum: 0
+          multipleOf: 0.01
+        saldo:
+          type: number
+          multipleOf: 0.01
+    ErroResponse:
+      type: object
+      required:
+        - codigo
+        - mensagem
+      properties:
+        codigo:
+          type: string
+        mensagem:
+          type: string
+  securitySchemes:
+    bearerAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/common/oauth2/v2.0/token
+          scopes:
+            consolidado.read: Consultar o consolidado diário.
