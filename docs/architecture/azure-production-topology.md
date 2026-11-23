@@ -13,9 +13,9 @@ flowchart LR
   ACA --> CO[Consolidado<br/>Managed Identity]
   LA -->|TLS + Cosmos data RBAC: fluxocaixa| DB[(Cosmos DB<br/>ledger / leases / projeção)]
   DB -->|Change Feed|   FN[Azure Function Flex Consumption<br/>Java 25 / Managed Identity]
-  FN -->|TLS + Data Sender| SB[Service Bus Premium<br/>lancamentos-topic]
+  FN -->|AMQP 1.0 over TLS + Data Sender| SB[Service Bus Premium<br/>lancamentos-topic]
   FN -->|TLS + MI / Private Link| ST[Storage host<br/>acesso público desabilitado]
-  SB -->|consolidado-sub / Data Receiver| CO
+  SB -->|AMQP 1.0 over TLS<br/>consolidado-sub / Data Receiver| CO
   CO -->|TLS + Cosmos data RBAC: consolidado| DB
   ACA -.->|telemetria| OBS[Application Insights / Log Analytics]
   FN -.->|telemetria| OBS
