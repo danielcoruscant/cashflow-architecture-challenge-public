@@ -4,8 +4,9 @@
 
 ```mermaid
 flowchart LR
-  User[Browser / cliente] -->|HTTPS público: conteúdo estático| SWA[Static Web Apps Standard<br/>endpoint global]
-  User -->|HTTPS 443 api.example.com| AGW[Application Gateway WAF_v2<br/>WAF Prevention / TLS]
+  User[Browser / cliente] -->|HTTPS 443 app.example.com| AGW[Application Gateway WAF_v2<br/>WAF Prevention / TLS]
+  User -->|HTTPS 443 api.example.com| AGW
+  AGW -->|HTTPS para origem estática| SWA[Static Web Apps Standard<br/>backend de conteúdo]
   AGW -->|HTTPS para VIP privado| APIM[API Management Developer_1<br/>VNet internal]
   APIM -->|HTTPS via FQDN privado| ACA[Container Apps Environment<br/>internal / zonas]
   ACA --> LA[Lançamentos<br/>Managed Identity]
@@ -22,14 +23,14 @@ flowchart LR
   Entra[Microsoft Entra ID<br/>issuer, audience, scopes] -->|JWT validado no APIM e serviço| APIM
 ```
 
-O diagrama representa os recursos declarados em Terraform, não recursos provisionados nem conectividade testada. A VNet contém subnets dedicadas ao Container Apps, à integração da Function Flex Consumption e aos Private Endpoints; zonas DNS privadas para Blob, File, Queue e Table são vinculadas à VNet. Cosmos DB, Service Bus e ACR ainda usam endpoints públicos TLS com autenticação por Managed Identity; o Storage da Function usa Private Link e acesso público desabilitado.
+O diagrama representa a topologia alvo, não recursos provisionados nem conectividade testada. O Terraform atual configura o listener do Application Gateway apenas para a API; ainda faltam o listener e o backend HTTPS para o Static Web Apps, o domínio `app.example.com` e o bloqueio de acesso direto à origem. Até esses itens serem implementados, o hostname padrão do Static Web Apps continua sendo um caminho público que contorna o gateway. A VNet contém subnets dedicadas ao Container Apps, à integração da Function Flex Consumption e aos Private Endpoints; zonas DNS privadas para Blob, File, Queue e Table são vinculadas à VNet. Cosmos DB, Service Bus e ACR ainda usam endpoints públicos TLS com autenticação por Managed Identity; o Storage da Function usa Private Link e acesso público desabilitado.
 
 ## Exposição e fronteiras de confiança
 
 | Componente | Exposição prevista | Justificativa / controle |
 |---|---|---|
-| Static Web Apps | Público, HTTPS e distribuição global | Entrega da SPA ao browser. O frontend chama a API por um domínio separado; o hostname padrão serve conteúdo estático, não APIs. |
-| Application Gateway WAF_v2 | IP público, HTTPS 443 | Único ingresso público da API; WAF em Prevention, listener TLS com certificado obtido do Key Vault. |
+| Static Web Apps | Backend HTTPS do Application Gateway | Entrega da SPA ao browser. O domínio público da aplicação deve apontar para o gateway; o hostname padrão da origem não deve ser usado diretamente pelos clientes e precisa ter o acesso direto bloqueado para evitar bypass. Esse bloqueio e o backend ainda não estão configurados no Terraform atual. |
+| Application Gateway WAF_v2 | IP público, HTTPS 443 | Ingresso público da aplicação e da API, com listeners/domínios próprios; WAF em Prevention e TLS com certificado obtido do Key Vault. A rota da aplicação encaminha ao Static Web Apps e a rota da API ao APIM. |
 | APIM | Somente endereço privado na VNet | VNet internal; aplica validação JWT, issuer/audience e autorização por escopo/operação. Tier Developer é uma simplificação sem SLA (ADR-014). |
 | Container Apps | Ambiente com load balancer interno | Ingress dos apps é acessível pela VNet, inclusive pelo APIM; não há endpoint público externo do ambiente nem restrição exclusiva ao APIM configurada. |
 | Function Publisher | Endpoint gerenciado de Function App, sem endpoint de negócio exposto | Trigger de Change Feed; integração VNet para acessar o Storage de host privado. Restringir acesso de entrada antes do deploy se triggers/recursos adicionais forem introduzidos. |
@@ -40,7 +41,7 @@ O diagrama representa os recursos declarados em Terraform, não recursos provisi
 
 O Terraform declara Private Endpoints somente para o Storage usado pela Function, nos subrecursos Blob, File, Queue e Table, com DNS privado associado à VNet. Cosmos DB, Service Bus e ACR mantêm `public_network_access_enabled = true` e não possuem Private Endpoints nesta composição. TLS, Managed Identity e RBAC protegem autenticação e autorização, mas não restringem esses serviços à rede privada.
 
-Container Apps não usa um Private Endpoint próprio nesta topologia: o ambiente tem load balancer interno e os serviços são acessíveis dentro da VNet, inclusive pelo APIM interno. Não há regra de ingress que limite o acesso apenas ao APIM; outros recursos com conectividade de rede podem tentar acessar os serviços diretamente. A configuração de ingress das apps não deve ser interpretada isoladamente como exposição à Internet; é o ambiente interno que delimita a rede. A Function usa integração VNet para sua conectividade de saída e Storage privado; isso não equivale a um Private Endpoint de entrada para a Function, que não expõe endpoint de negócio nesta solução. Application Gateway e Static Web Apps permanecem públicos intencionalmente como pontos de entrada.
+Container Apps não usa um Private Endpoint próprio nesta topologia: o ambiente tem load balancer interno e os serviços são acessíveis dentro da VNet, inclusive pelo APIM interno. Não há regra de ingress que limite o acesso apenas ao APIM; outros recursos com conectividade de rede podem tentar acessar os serviços diretamente. A configuração de ingress das apps não deve ser interpretada isoladamente como exposição à Internet; é o ambiente interno que delimita a rede. A Function usa integração VNet para sua conectividade de saída e Storage privado; isso não equivale a um Private Endpoint de entrada para a Function, que não expõe endpoint de negócio nesta solução. O Application Gateway é o ponto de entrada público; o Static Web Apps é um backend e não deve ser acessado diretamente pelos clientes. Até o acesso direto à origem ser bloqueado, porém, o hostname padrão do Static Web Apps continua público e permite contornar o gateway.
 
 Para produção, recomenda-se implementar Private Endpoints para Cosmos DB, Service Bus e ACR, configurar e validar as zonas DNS privadas correspondentes e desabilitar o acesso público após confirmar a conectividade dos consumidores e do pipeline de implantação. O ACR também requer validar a resolução e conectividade dos endpoints de dados. A adoção deve ser compatível com as políticas de segurança e requisitos regulatórios do ambiente, não sendo uma afirmação de requisito legal universal.
 
@@ -93,5 +94,6 @@ O papel de Receiver fica no tópico porque o escopo do tópico é suportado pelo
 2. **Endpoints públicos remanescentes**: antes de produção, planejar Private Endpoints, DNS privado e estratégia de egress para Cosmos, Service Bus e ACR; desabilitar o acesso público somente após validar conectividade dos workloads e do pipeline. O Storage da Function já está privado na configuração, mas sua conectividade ainda não foi exercitada em Azure.
 3. **Function Consumption**: não existe allowlist de entrada/rede privada nesta composição; confirmar superfície do host/trigger e aplicar restrições suportadas pelo plano.
 4. **Certificado**: o Key Vault é pré-requisito externo. A identidade do Application Gateway precisa de permissão de leitura e conectividade de rede ao vault; usar URI sem versão para rotação controlada.
-5. **SLO, limites de escala, custo e suporte zonal**: confirmar com teste de carga, requisitos de negócio e Pricing Calculator. A estimativa atual não contém total precificado.
-6. **Sem multi-região/DR**: recuperação geográfica requer decisão, runbooks e teste específicos.
+5. **Static Web Apps atrás do gateway**: implementar listener/domínio e backend HTTPS no Application Gateway, definir a resolução DNS para o gateway e impedir acesso direto à origem; validar o fluxo do browser para SPA e API e confirmar que o hostname padrão não contorna o WAF.
+6. **SLO, limites de escala, custo e suporte zonal**: confirmar com teste de carga, requisitos de negócio e Pricing Calculator. A estimativa atual não contém total precificado.
+7. **Sem multi-região/DR**: recuperação geográfica requer decisão, runbooks e teste específicos.

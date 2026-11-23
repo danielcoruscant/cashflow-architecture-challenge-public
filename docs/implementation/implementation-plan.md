@@ -204,7 +204,7 @@ Estrutura oficial: `infra/modules/<recurso>/` e apenas `infra/environments/prod/
 | **T19i** | Módulo Application Gateway WAF v2 validado isoladamente |
 | **T19j** | Módulo Static Web App validado isoladamente |
 | **T19k** | Compor módulos no ambiente `infra/environments/prod/`; manter apenas esse ambiente e remover `infra/environments/dev/` |
-| **T20** | Topologia documentada em `docs/architecture/`: Internet → WAF → (SWA / APIM) → Container Apps; justificar exposições públicas |
+| **T20** | Topologia documentada em `docs/architecture/`: Internet → WAF → SWA (SPA) e APIM → Container Apps; justificar exposições públicas e impedir bypass direto da origem do SWA |
 | **T21a** | Identidade gerenciada atribuída a cada componente que a requer; validar configuração e ausência de chaves de aplicação estáticas |
 | **T21b** | Cosmos data-plane RBAC por database, com permissões mínimas; validar principal e escopo das atribuições |
 | **T21c** | Service Bus RBAC: sender na Function e receiver no Consolidado; validar principal, papel e escopo |
