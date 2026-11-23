@@ -11,6 +11,8 @@ Desenvolver uma solução para controle de fluxo de caixa diário de um comercia
 | [Plano de implementação](docs/implementation/implementation-plan.md) | Escopo, tarefas, critérios de aceite e dependências |
 | [Roadmap de implementação](docs/implementation/implementation-roadmap.md) | Marcos e sequência de execução |
 | [Implantação produtiva](docs/operations/production-deployment.md) | Pré-requisitos, Terraform, RBAC, publicação, validação operacional e rollback |
+| [Topologia Azure](docs/architecture/azure-production-topology.md) | Fluxos, exposição e fronteiras de confiança da arquitetura Azure |
+| [Diagramas](docs/diagram/) | Diagramas arquiteturais em formato Draw.io |
 | [ADRs](docs/adr/README.md) | Decisões arquiteturais (ADR-001 a ADR-017) |
 | [Context Map](docs/domain/context-map.md) | Domínios, contextos e eventos |
 | [Requisitos não funcionais](docs/architecture/non-functional-requirements.md) | NFRs |
